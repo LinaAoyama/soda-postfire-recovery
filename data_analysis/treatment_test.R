@@ -1,14 +1,14 @@
 #Treatment test 
 #Set data pathway
 #Load data
-source("data_compiling/treatment test data compile.R")
+source("data_compiling/data compile.R")
 
 library(ggplot2)
 library(multcomp)
 library(tidyverse)
 
 #Clean data
-clean_data <- data %>%
+clean_data <- rawdata %>%
   filter(Allele1 != "NA") %>%
   filter(Treatment != "NA")
 

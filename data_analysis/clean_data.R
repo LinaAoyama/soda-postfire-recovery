@@ -5,7 +5,7 @@ library(tidyverse)
 library(dplyr)
 
 #load data
-rawdata <- read_csv(paste(datpath, "/All_Areas_combined.csv", sep = ""))
+source("data_compiling/data compile.R")
 data <- rawdata
 
 #remove NA entries (165 rows)
@@ -33,4 +33,9 @@ data$Primer[data$Primer == 'FF344396.1 FAM' | data$Primer == 'FF344396.1'] <- 'L
 data$Primer[data$Primer == 'FF342618.1 HEX' | data$Primer == 'FF342618.1'] <- 'Loc618'
 
 #pivot_wider to change loci as columns
-data_wide <- data %>% pivot_wider(names_from = Primer, values_from = Genotype)
+data_wide <- data %>% 
+  select(SampleID, Treatment, Plot, Rep, Area, Primer, Genotype) %>%
+  pivot_wider(names_from = Primer, values_from = Genotype)
+
+#combine genomic data and plot info 
+genomic_data <- left_join(data_wide, plot_info) 
