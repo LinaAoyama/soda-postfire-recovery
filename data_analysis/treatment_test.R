@@ -164,4 +164,3 @@ ggplot(mean_hetero_primer, aes(x = Treatment, y = mean, col = Area))+
   facet_wrap(~Primer, ncol = 5)+
   geom_jitter(data = hetero_pop, aes(x = Treatment, y = heterozygosity))
 
-#
