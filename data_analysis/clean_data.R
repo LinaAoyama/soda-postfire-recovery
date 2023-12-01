@@ -286,5 +286,4 @@ binned_genomic_data$Loc831A2[binned_genomic_data$Loc831A2 == '265' | binned_geno
 binned_genomic_data$Loc831A2[binned_genomic_data$Loc831A2 == '268' | binned_genomic_data$Loc831A2 == '269'] <- '267'
 binned_genomic_data$Loc831A2[binned_genomic_data$Loc831A2 == '273' ] <- '272'
 
-write.csv(binned_genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv", row.names = FALSE)
-write_population(binned_genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = FALSE, mode = "structure", stratum = "Plot")
+#write.csv(binned_genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv", row.names = FALSE)

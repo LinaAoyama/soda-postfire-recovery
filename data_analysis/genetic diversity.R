@@ -5,6 +5,7 @@ library(gstudio)
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
+library(ggpubr)
 
 #load data
 genomic_data <- read_population("C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",
@@ -63,7 +64,7 @@ mean.genetic.diveristy <- genetic.diversity %>%
             mean_He = mean(He), se_He = se(He))
 
 #Plot diversity by treatment and area
-ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ae, col = Area))+
+A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ae, col = Area))+
   geom_point()+
   geom_errorbar(aes(ymin = mean_Ae-se_Ae, ymax = mean_Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
   ylab(bquote(Mean~allelic~richness))+
@@ -71,7 +72,7 @@ ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ae, col = Area))+
   #facet_wrap(~Area, ncol = 5)+
   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ae))
 
-ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ho, col = Area))+
+Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ho, col = Area))+
   geom_point()+
   geom_errorbar(aes(ymin = mean_Ho-se_Ho, ymax = mean_Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
   ylab(bquote(Mean~Observed~Heterozygosity))+
@@ -79,13 +80,15 @@ ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ho, col = Area))+
   #facet_wrap(~Area, ncol = 5)+
   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ho))
 
-ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_He, col = Area))+
+He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_He, col = Area))+
   geom_point()+
   geom_errorbar(aes(ymin = mean_He-se_He, ymax = mean_He+se_He), width = 0.2, alpha = 0.9, size = 1)+
   ylab(bquote(Mean~Expected~Heterozygosity))+
   theme_bw()+
   #facet_wrap(~Area, ncol = 5)+
   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
+
+ggarrange(A_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, legend = "right")
 
 #Summary by each primer
 mean.genetic.diveristy.primer <- genetic.diversity %>%
