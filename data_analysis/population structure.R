@@ -4,6 +4,7 @@
 library(gstudio)
 library(tidyverse)
 library(ggplot2)
+library(adegenet)
 
 #load data
 genomic_data <- read_population("C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",
@@ -34,3 +35,14 @@ ggplot(PCA_df_wild)+
 #create data file in structure format 
 write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = TRUE, mode = "structure", stratum = "Plot")
 write_population(wild_only_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_no_anatone.str", row.names = TRUE, mode = "structure", stratum = "Plot")
+
+###Are closer populations more similar to each other than more distant populations?
+#Calculate pair-wise Gst (Genetic differentiation between populations)
+Gst <- genetic_structure(genomic_data, stratum = "Plot", mode = "Gst", pairwise = TRUE) #0-1; large values mean more differentiated (no sharing of genetic mat)
+#Calculate pair-wise distance matrix
+GeoDistance 
+
+
+map <- population_map(genomic_data)
+ggplot2::ggmap(map)+
+  geom_point(aes(x = Longitude, y = Latitude, col = Area), data = genomic_data)
