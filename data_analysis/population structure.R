@@ -40,9 +40,12 @@ write_population(wild_only_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_
 #Calculate pair-wise Gst (Genetic differentiation between populations)
 Gst <- genetic_structure(genomic_data, stratum = "Plot", mode = "Gst", pairwise = TRUE) #0-1; large values mean more differentiated (no sharing of genetic mat)
 #Calculate pair-wise distance matrix
-GeoDistance 
+plot_info[order(plot_info$Plot),]
+GeoDistance <- dist(plot_info[-38,4:5], method = "euclidean",
+                    diag = TRUE, upper = TRUE) #omit UU13
+#Plot pairwise Gst and distance
 
 
-map <- population_map(genomic_data)
+map <- population_map(plot_info)
 ggplot2::ggmap(map)+
   geom_point(aes(x = Longitude, y = Latitude, col = Area), data = genomic_data)
