@@ -14,25 +14,25 @@ column_class(genomic_data, class = "locus")
 
 #visualize allele frequencies
 plot(genomic_data$Loc025) #84, 87, 141, 144, 147, 150, 153, 156, 160, 164, 167
-ggplot() + geom_locus(aes(x = Loc025, fill = Treatment), data = genomic_data) #Anatone: 144, 150
+ggplot() + geom_locus(aes(x = Loc025, fill = Treatment), data = genomic_data) #Anatone: 144, 150 OK
 plot(genomic_data$Loc040) #169, 172, 175, 179, 182, 185, 188, 191, 194, 197
-ggplot() + geom_locus(aes(x = Loc040, fill = Treatment), data = genomic_data) #Anatone: 182, 188, 191
+ggplot() + geom_locus(aes(x = Loc040, fill = Treatment), data = genomic_data) #Anatone: 182, 188, 191 OK
 plot(genomic_data$Loc209) #167, 170, 173, 179, 182, 185, 188, 191, 196, 199
-ggplot() + geom_locus(aes(x = Loc209, fill = Treatment), data = genomic_data) #Anatone: 182
+ggplot() + geom_locus(aes(x = Loc209, fill = Treatment), data = genomic_data) #Anatone: 182 OK
 plot(genomic_data$Loc262) #473, 476, 479, 482, 485, 488
-ggplot() + geom_locus(aes(x = Loc262, fill = Treatment), data = genomic_data) #Anatone: 225, 292
+ggplot() + geom_locus(aes(x = Loc262, fill = Treatment), data = genomic_data) #Anatone: 225, 292 Weird
 plot(genomic_data$Loc307) #162, 165, 168, 171, 174, 177, 197
-ggplot() + geom_locus(aes(x = Loc307, fill = Treatment), data = genomic_data) #Anatone: 177
+ggplot() + geom_locus(aes(x = Loc307, fill = Treatment), data = genomic_data) #Anatone: 177 OK
 plot(genomic_data$Loc338) #169, 172, 175, 179, 182, 185, 188, 192, 206
-ggplot() + geom_locus(aes(x = Loc338, fill = Treatment), data = genomic_data) #Anatone: 175, 182
+ggplot() + geom_locus(aes(x = Loc338, fill = Treatment), data = genomic_data) #Anatone: 175, 182 Weird
 plot(genomic_data$Loc396) #164, 177, 183, 228, 231, 234, 237, 240
-ggplot() + geom_locus(aes(x = Loc396, fill = Treatment), data = genomic_data) #Anatone: 164, 228, 231
+ggplot() + geom_locus(aes(x = Loc396, fill = Treatment), data = genomic_data) #Anatone: 164, 228, 231 Weird
 plot(genomic_data$Loc548) #39, 71, 84, 92, 95, 98, 101, 104, 107, 110, 113, 116, 119, 122, 125, 128, 132
-ggplot() + geom_locus(aes(x = Loc548, fill = Treatment), data = genomic_data) #Anatone: 84 
+ggplot() + geom_locus(aes(x = Loc548, fill = Treatment), data = genomic_data) #Anatone: 84 Weird
 plot(genomic_data$Loc618) #146, 159, 165, 168, 172, 178, 181, 184, 187, 190, 195, 236
-ggplot() + geom_locus(aes(x = Loc618, fill = Treatment), data = genomic_data) #Anatone: 178, 187
+ggplot() + geom_locus(aes(x = Loc618, fill = Treatment), data = genomic_data) #Anatone: 178, 187 OK
 plot(genomic_data$Loc831) #235, 238, 241, 252, 255, 258, 261, 264, 267, 272
-ggplot() + geom_locus(aes(x = Loc831, fill = Treatment), data = genomic_data) #Anatone: 252, 261
+ggplot() + geom_locus(aes(x = Loc831, fill = Treatment), data = genomic_data) #Anatone: 252, 261 OK
 
 freqs.loci.strata <- frequencies(genomic_data, stratum = "Treatment")
 ggplot(freqs.loci.strata) +
@@ -54,7 +54,13 @@ colnames(He.diversity) <- c('Plot', 'Locus', 'He')
 #Combine diversity metrics in one table
 genetic.diversity <- left_join(A.diversity, Ho.diversity) %>%
   left_join(., He.diversity) %>%
-  left_join(., plot_info)
+  left_join(., plot_info) 
+
+genetic.diversity.pop <- genetic.diversity %>%
+  group_by(Plot, Treatment, Area) %>%
+  summarize(mean_Ae = mean(Ae), se_Ae = se(Ae),
+            mean_Ho = mean(Ho), se_Ho = se(Ho),
+            mean_He = mean(He), se_He = se(He))
 
 #Summary by treatment and area
 mean.genetic.diveristy <- genetic.diversity %>%
@@ -70,7 +76,7 @@ A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ae, col = A
   ylab(bquote(Mean~allelic~richness))+
   theme_bw()+
   #facet_wrap(~Area, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ae))
+  geom_jitter(data = genetic.diversity.pop, aes(x = Treatment, y = mean_Ae))
 
 Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ho, col = Area))+
   geom_point()+
@@ -123,7 +129,7 @@ ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_He, col = Area
   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
 
 #Richness by distance from fire edge
-ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ae, col = Area))+
+Ae_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ae, col = Area))+
   geom_jitter()+
   theme_bw()+
   geom_smooth(method = lm)+
@@ -137,13 +143,23 @@ anova(lm(Ae~Distance_m*Treatment, genetic.diversity%>%filter(Treatment%in%c("BS"
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))))
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))))
 
-ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ho, col = Area))+
+Ho_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ho, col = Area))+
   geom_jitter()+
   theme_bw()+
   geom_smooth(method = lm)+
   ylab(bquote(Mean~Observed~Heterozygosity))+
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Treatment)
+
+He_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = He, col = Area))+
+  geom_jitter()+
+  theme_bw()+
+  geom_smooth(method = lm)+
+  ylab(bquote(Mean~Expected~Heterozygosity))+
+  xlab("Distance from Fire Edge (m)")+
+  facet_grid(~Treatment)
+
+ggarrange(Ae_distance, Ho_distance, He_distance, ncol = 1, common.legend = TRUE, legend = "right")
 
 #Fst
 Fst <- Fst(genomic_data, stratum = "Plot")
