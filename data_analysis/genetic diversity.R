@@ -11,6 +11,11 @@ library(ggpubr)
 genomic_data <- read_population("C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",
                                 type = "column", locus.columns = 10:29)
 column_class(genomic_data, class = "locus")
+genomic_data <- genomic_data %>%
+  mutate(Area = case_when(Area == 'Anatone' ~ 'Anatone', 
+                          Area == 'C' ~ 'Salmon',
+                          Area == 'D' ~ 'West',
+                          Area == 'E' ~ 'Rockville'))
 
 #visualize allele frequencies
 plot(genomic_data$Loc025) #84, 87, 141, 144, 147, 150, 153, 156, 160, 164, 167
@@ -58,41 +63,63 @@ genetic.diversity <- left_join(A.diversity, Ho.diversity) %>%
 
 genetic.diversity.pop <- genetic.diversity %>%
   group_by(Plot, Treatment, Area) %>%
-  summarize(mean_Ae = mean(Ae), se_Ae = se(Ae),
-            mean_Ho = mean(Ho), se_Ho = se(Ho),
-            mean_He = mean(He), se_He = se(He))
+  summarize(mean_Ae = mean(Ae), 
+            mean_Ho = mean(Ho), 
+            mean_He = mean(He))
 
 #Summary by treatment and area
-mean.genetic.diveristy <- genetic.diversity %>%
+mean.genetic.diveristy <- genetic.diversity.pop %>%
   group_by(Treatment, Area) %>%
-  summarize(mean_Ae = mean(Ae), se_Ae = se(Ae),
-            mean_Ho = mean(Ho), se_Ho = se(Ho),
-            mean_He = mean(He), se_He = se(He))
+  summarize(Ae = mean(mean_Ae), se_Ae = se(mean_Ae),
+            Ho = mean(mean_Ho), se_Ho = se(mean_Ho),
+            He = mean(mean_He), se_He = se(mean_He))
 
 #Plot diversity by treatment and area
-A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ae, col = Area))+
+A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))+
   geom_point()+
-  geom_errorbar(aes(ymin = mean_Ae-se_Ae, ymax = mean_Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
+  geom_errorbar(aes(ymin = Ae-se_Ae, ymax = Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ae))+
   ylab(bquote(Mean~allelic~richness))+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12),
+        axis.title.x = element_blank(),
+        legend.position = "right")
   #facet_wrap(~Area, ncol = 5)+
-  geom_jitter(data = genetic.diversity.pop, aes(x = Treatment, y = mean_Ae))
-
-Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_Ho, col = Area))+
+  
+Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ho, col = Area))+
   geom_point()+
-  geom_errorbar(aes(ymin = mean_Ho-se_Ho, ymax = mean_Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
+  geom_errorbar(aes(ymin = Ho-se_Ho, ymax = Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ho))+
   ylab(bquote(Mean~Observed~Heterozygosity))+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12))
   #facet_wrap(~Area, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ho))
-
-He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = mean_He, col = Area))+
+  
+He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area))+
   geom_point()+
-  geom_errorbar(aes(ymin = mean_He-se_He, ymax = mean_He+se_He), width = 0.2, alpha = 0.9, size = 1)+
+  geom_errorbar(aes(ymin = He-se_He, ymax = He+se_He), width = 0.2, alpha = 0.9, size = 1)+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_He))+
   ylab(bquote(Mean~Expected~Heterozygosity))+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12),
+        axis.title.x = element_blank())
   #facet_wrap(~Area, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
+  
 
 ggarrange(A_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, legend = "right")
 

@@ -6,7 +6,7 @@ library(dplyr)
 library(gstudio)
 
 #load data
-source("data_compiling/data compile.R")
+rawdata <- read_csv(paste(datpath, "/All_Areas_combined_plotnames_adjusted.csv", sep = ""))
 data <- rawdata
 
 #remove NA entries (165 rows)
