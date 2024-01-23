@@ -6,9 +6,9 @@ library(tidyverse)
 library(ggplot2)
 library(adegenet)
 
+
 #load data
-genomic_data <- read_population("C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",
-                                type = "column", locus.columns = 10:29)
+source("data_compiling/data compile.R")
 
 #PCA of raw genotypes
 matrix_raw_data <- to_mv(genomic_data[,10:19], drop.allele = TRUE)
@@ -42,9 +42,15 @@ ggplot(PCA_df)+
 #   geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
 #   theme_bw()
 
-#create data file in structure format 
+#create data file in STRUCTURE format 
 write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = TRUE, mode = "structure", stratum = "Plot")
 #write_population(wild_only_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_no_anatone.str", row.names = TRUE, mode = "structure", stratum = "Plot")
+
+#Run STRUCTURE externally
+#Store STRUCTURE results in an object
+library(strataG)
+sr <- "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Analysis/sodafire_structure/100Kburn100Kiter/Results"
+
 
 ###Are closer populations more similar to each other than more distant populations?
 #Calculate pair-wise Gst (Genetic differentiation between populations)

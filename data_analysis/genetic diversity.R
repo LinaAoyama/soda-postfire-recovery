@@ -8,14 +8,8 @@ library(dplyr)
 library(ggpubr)
 
 #load data
-genomic_data <- read_population("C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",
-                                type = "column", locus.columns = 10:29)
+source("data_compiling/data compile.R")
 column_class(genomic_data, class = "locus")
-genomic_data <- genomic_data %>%
-  mutate(Area = case_when(Area == 'Anatone' ~ 'Anatone', 
-                          Area == 'C' ~ 'Salmon',
-                          Area == 'D' ~ 'West',
-                          Area == 'E' ~ 'Rockville'))
 
 #visualize allele frequencies
 plot(genomic_data$Loc025) #84, 87, 141, 144, 147, 150, 153, 156, 160, 164, 167
@@ -65,7 +59,8 @@ genetic.diversity.pop <- genetic.diversity %>%
   group_by(Plot, Treatment, Area) %>%
   summarize(mean_Ae = mean(Ae), 
             mean_Ho = mean(Ho), 
-            mean_He = mean(He))
+            mean_He = mean(He)) %>%
+  left_join(., plot_info) 
 
 #Summary by treatment and area
 mean.genetic.diveristy <- genetic.diversity.pop %>%
@@ -79,7 +74,7 @@ A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))
   geom_point()+
   geom_errorbar(aes(ymin = Ae-se_Ae, ymax = Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ae))+
-  ylab(bquote(Mean~allelic~richness))+
+  ylab(bquote(Mean~Allelic~Richness))+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -95,7 +90,7 @@ Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ho, col = Area)
   geom_point()+
   geom_errorbar(aes(ymin = Ho-se_Ho, ymax = Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ho))+
-  ylab(bquote(Mean~Observed~Heterozygosity))+
+  ylab(bquote(Mean~Obs~Heterozygosity))+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -109,7 +104,7 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area)
   geom_point()+
   geom_errorbar(aes(ymin = He-se_He, ymax = He+se_He), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_He))+
-  ylab(bquote(Mean~Expected~Heterozygosity))+
+  ylab(bquote(Mean~Exp~Heterozygosity))+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -121,48 +116,59 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area)
   #facet_wrap(~Area, ncol = 5)+
   
 
-ggarrange(A_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, legend = "right")
+ggarrange(A_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, align = "hv", 
+          legend = "right", labels = c("a)", "b)", "c)"))
 
-#Summary by each primer
-mean.genetic.diveristy.primer <- genetic.diversity %>%
-  group_by(Treatment, Area, Locus) %>%
-  summarize(mean_Ae = mean(Ae), se_Ae = se(Ae),
-            mean_Ho = mean(Ho), se_Ho = se(Ho),
-            mean_He = mean(He), se_He = se(He))
-
-#Plot diversity by each primer
-ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_Ae, col = Area))+
-  geom_point()+
-  geom_errorbar(aes(ymin = mean_Ae-se_Ae, ymax = mean_Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
-  ylab(bquote(Mean~allelic~richness))+
-  theme_bw()+
-  facet_wrap(~Locus, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ae))
-
-ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_Ho, col = Area))+
-  geom_point()+
-  geom_errorbar(aes(ymin = mean_Ho-se_Ho, ymax = mean_Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
-  ylab(bquote(Mean~Observed~Heterozygosity))+
-  theme_bw()+
-  facet_wrap(~Locus, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ho))
-
-ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_He, col = Area))+
-  geom_point()+
-  geom_errorbar(aes(ymin = mean_He-se_He, ymax = mean_He+se_He), width = 0.2, alpha = 0.9, size = 1)+
-  ylab(bquote(Mean~Expected~Heterozygosity))+
-  theme_bw()+
-  facet_wrap(~Locus, ncol = 5)+
-  geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
+# #Summary by each primer
+# mean.genetic.diveristy.primer <- genetic.diversity %>%
+#   group_by(Treatment, Area, Locus) %>%
+#   summarize(mean_Ae = mean(Ae), se_Ae = se(Ae),
+#             mean_Ho = mean(Ho), se_Ho = se(Ho),
+#             mean_He = mean(He), se_He = se(He))
+# 
+# #Plot diversity by each primer
+# ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_Ae, col = Area))+
+#   geom_point()+
+#   geom_errorbar(aes(ymin = mean_Ae-se_Ae, ymax = mean_Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
+#   ylab(bquote(Mean~allelic~richness))+
+#   theme_bw()+
+#   facet_wrap(~Locus, ncol = 5)+
+#   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ae))
+# 
+# ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_Ho, col = Area))+
+#   geom_point()+
+#   geom_errorbar(aes(ymin = mean_Ho-se_Ho, ymax = mean_Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
+#   ylab(bquote(Mean~Observed~Heterozygosity))+
+#   theme_bw()+
+#   facet_wrap(~Locus, ncol = 5)+
+#   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = Ho))
+# 
+# ggplot(mean.genetic.diveristy.primer, aes(x = Treatment, y = mean_He, col = Area))+
+#   geom_point()+
+#   geom_errorbar(aes(ymin = mean_He-se_He, ymax = mean_He+se_He), width = 0.2, alpha = 0.9, size = 1)+
+#   ylab(bquote(Mean~Expected~Heterozygosity))+
+#   theme_bw()+
+#   facet_wrap(~Locus, ncol = 5)+
+#   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
 
 #Richness by distance from fire edge
-Ae_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ae, col = Area))+
+Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ae, col = Area))+
   geom_jitter()+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12),
+        axis.title.x = element_blank())+
   geom_smooth(method = lm)+
   ylab(bquote(Mean~Allelic~Richness))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)
+  facet_grid(~Treatment)+
+  scale_color_manual(values = c("#7CAE00",
+                                "#00BFC4",
+                                "#C77CFF"))
   #annotate("text", x = 3900, y = 20, label = "Burn-Seeded (BS): y = - 0.0003x + 6.98, R2 = 0.01, p = 0.19")+
   #annotate("text", x = 3900, y = 17.5, label = "Burn-Unseeded (BU): y = - 0.0004x + 6.50, R2 = 0.03, p = 0.02")
 
@@ -170,23 +176,43 @@ anova(lm(Ae~Distance_m*Treatment, genetic.diversity%>%filter(Treatment%in%c("BS"
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))))
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))))
 
-Ho_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = Ho, col = Area))+
+Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ho, col = Area))+
   geom_jitter()+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12))+
   geom_smooth(method = lm)+
-  ylab(bquote(Mean~Observed~Heterozygosity))+
+  ylab(bquote(Mean~Obs~Heterozygosity))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)
+  facet_grid(~Treatment)+
+  scale_color_manual(values = c("#7CAE00",
+                                "#00BFC4",
+                                "#C77CFF"))
 
-He_distance <- ggplot(genetic.diversity %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = He, col = Area))+
+He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_He, col = Area))+
   geom_jitter()+
-  theme_bw()+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12),
+        axis.title.x = element_blank())+
   geom_smooth(method = lm)+
-  ylab(bquote(Mean~Expected~Heterozygosity))+
+  ylab(bquote(Mean~Exp~Heterozygosity))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)
+  facet_grid(~Treatment)+
+  scale_color_manual(values = c("#7CAE00",
+                                "#00BFC4",
+                                "#C77CFF"))
 
-ggarrange(Ae_distance, Ho_distance, He_distance, ncol = 1, common.legend = TRUE, legend = "right")
+ggarrange(Ae_distance, He_distance, Ho_distance, ncol = 1, align = "hv",
+          common.legend = TRUE, legend = "right", labels = c("a)", "b)", "c)"))
 
 #Fst
 Fst <- Fst(genomic_data, stratum = "Plot")
