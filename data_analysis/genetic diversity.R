@@ -24,11 +24,11 @@ plot(genomic_data$Loc209) #167, 170, 173, 179, 182, 185, 188, 191, 196, 199
 L209 <- ggplot() + geom_locus(aes(x = Loc209, fill = Treatment), data = genomic_data)+
   annotate("text", label = "L209", x = 2, y = 1, size = 5)+
   ylim(c(0,1))#Anatone: 182 OK
-plot(genomic_data$Loc262) #473, 476, 479, 482, 485, 488
+plot(genomic_data$Loc262) #473, 476, 479, 482, 485, 488 >50% missing data
 L262 <- ggplot() + geom_locus(aes(x = Loc262, fill = Treatment), data = genomic_data)+
   annotate("text", label = "L262", x = 2, y = 1, size = 5)+
   ylim(c(0,1))#Anatone: 225, 292 Weird
-plot(genomic_data$Loc307) #162, 165, 168, 171, 174, 177, 197
+plot(genomic_data$Loc307) #162, 165, 168, 171, 174, 177, 197 >50% missing data
 L307 <- ggplot() + geom_locus(aes(x = Loc307, fill = Treatment), data = genomic_data)+
   annotate("text", label = "L307", x = 2, y = 1, size = 5)+
   ylim(c(0,1))#Anatone: 177 OK
@@ -36,7 +36,7 @@ plot(genomic_data$Loc338) #169, 172, 175, 179, 182, 185, 188, 192, 206
 L338 <- ggplot() + geom_locus(aes(x = Loc338, fill = Treatment), data = genomic_data)+
   annotate("text", label = "L338", x = 2, y = 1, size = 5)+
   ylim(c(0,1))#Anatone: 175, 182 Weird
-plot(genomic_data$Loc396) #164, 177, 183, 228, 231, 234, 237, 240
+plot(genomic_data$Loc396) #164, 177, 183, 228, 231, 234, 237, 240 >50% missing data
 L396 <- ggplot() + geom_locus(aes(x = Loc396, fill = Treatment), data = genomic_data)+
   annotate("text", label = "L396", x = 2, y = 1, size = 5)+
   ylim(c(0,1))#Anatone: 164, 228, 231 Weird
@@ -56,10 +56,23 @@ L831 <- ggplot() + geom_locus(aes(x = Loc831, fill = Treatment), data = genomic_
 ggarrange(L025, L040, L209, L262, L307, L338, L396, L548, L618, L831,
           ncol = 2, nrow = 5, common.legend = TRUE)
 
-freqs.loci.strata <- frequencies(genomic_data, stratum = "Treatment")
-ggplot(freqs.loci.strata) +
-  geom_frequencies(freqs.loci.strata) +
-  facet_grid(Stratum ~.)+ theme(legend.position = "none")
+# freqs.loci.strata <- frequencies(genomic_data, stratum = "Treatment")
+# ggplot(freqs.loci.strata) +
+#   geom_frequencies(freqs.loci.strata) +
+#   facet_grid(Stratum ~.)+ theme(legend.position = "none")
+
+#number of alleles per treatment per loci 
+#Allelic richness (total number of alleles)
+Arichness.diversity <- genetic_diversity(genomic_data, stratum = "Treatment", mode = "A")
+colnames(Arichness.diversity) <- c('Treatment', 'Locus', 'A')
+
+ggplot(Arichness.diversity, aes(y = A, x = Treatment, fill = Treatment))+
+  geom_col()+
+  facet_wrap(~Locus)+
+  scale_fill_manual(values = c("#F8766D",
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"))
 
 #Allelic richness (Effective Number of Alleles)
 A.diversity <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Ae")

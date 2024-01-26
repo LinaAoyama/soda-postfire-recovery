@@ -28,7 +28,7 @@ fig_pca_all <- ggplot(PCA_df)+
                         axis.title = element_text(size = 15),
                         legend.position = "right")+
                   xlab("PC1 (3.9%)")+
-                  ylab("PC2 (6.9%)")
+                  ylab("PC2 (2.9%)")
 
 #PCA subset by area to see Anatone and seeded trts better
 rockville_raw_data <- genomic_data %>%
@@ -48,13 +48,14 @@ fig_pca_rockville <- ggplot(PCA_df_rockville)+
                               axis.line = element_line(colour = "black"),
                               panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                               axis.title = element_text(size = 15),
-                              legend.position = "right")+
+                              legend.position = "bottom")+
                         xlab("PC1 (3.8%)")+
-                        ylab("PC2 (6.9%)")+
+                        ylab("PC2 (3.1%)")+
                         scale_color_manual(values = c("#F8766D",
-                                                      "#7CAE00",
+                                                      "#f7b2d8",
                                                       "#999999",
-                                                      "#E69F00"))
+                                                      "#b2ffc3"))
+                        #annotate("text", label = "Rockville", size = 5, x = -6, y = )
 
 salmon_raw_data <- genomic_data %>%
   filter(Area == "Salmon"| Area == "Anatone")
@@ -73,13 +74,13 @@ fig_pca_salmon <- ggplot(PCA_df_salmon)+
                           axis.line = element_line(colour = "black"),
                           panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                           axis.title = element_text(size = 15),
-                          legend.position = "right")+
+                          legend.position = "bottom")+
                     xlab("PC1 (7.4%)")+
-                    ylab("PC2 (13.1%)")+
+                    ylab("PC2 (5.7%)")+
                     scale_color_manual(values = c("#F8766D",
-                                                  "#00BFC4",
+                                                  "#f7b2d8",
                                                   "#999999",
-                                                  "#E69F00"))
+                                                  "#b2ffc3"))
 
 west_raw_data <- genomic_data %>%
   filter(Area == "West"| Area == "Anatone")
@@ -98,15 +99,17 @@ fig_pca_west <- ggplot(PCA_df_west)+
                         axis.line = element_line(colour = "black"),
                         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                         axis.title = element_text(size = 15),
-                        legend.position = "right")+
+                        legend.position = "bottom")+
                   xlab("PC1 (9.1%)")+
-                  ylab("PC2 (16.8%)")+
+                  ylab("PC2 (7.7%)")+
                   scale_color_manual(values = c("#F8766D",
-                                                "#C77CFF",
+                                                "#f7b2d8",
                                                 "#999999",
-                                                "#E69F00"))
+                                                "#b2ffc3"))
 
-ggarrange(fig_pca_all, fig_pca_rockville, fig_pca_salmon, fig_pca_west, labels = c("a)", "b)", "c)", "d)"), ncol =2, nrow =2)
+ggarrange(fig_pca_all, ggarrange(fig_pca_rockville, fig_pca_salmon, fig_pca_west, labels = c("b)", "c)", "d)"), 
+                                 ncol =3, nrow =1, common.legend = TRUE), labels = c("a)"), ncol = 1, nrow =2, heights = c(1.5, 1))
+
 # #take out anatone cultivar
 # wild_only_data <- genomic_data[9:760,]
 # matrix_wild_data <- to_mv(wild_only_data[,10:19], drop.allele = TRUE)
@@ -118,6 +121,53 @@ ggarrange(fig_pca_all, fig_pca_rockville, fig_pca_salmon, fig_pca_west, labels =
 # ggplot(PCA_df_wild)+
 #   geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
 #   theme_bw()
+
+#REMOVE loci with >50% missing data (L262, L307, L396)
+reduced_data <-  subset(genomic_data, select = -c(Loc262,Loc307, Loc396) )
+  
+matrix_red_data <- to_mv(reduced_data[,10:16], drop.allele = TRUE)
+fit.pca.red <- princomp(matrix_red_data, cor = TRUE)
+summary(fit.pca.red)
+pred.red <- predict(fit.pca.red)
+PCA_df_red <- data.frame(PC1 = pred.red[,1], PC2 = pred.red[,2], Treatment = reduced_data$Treatment,
+                     Area = reduced_data$Area, Pop = reduced_data$Plot)
+fig_pca_red <- ggplot(PCA_df_red)+
+  geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "right")+
+  xlab("PC1 (3.9%)")+
+  ylab("PC2 (2.8%)")
+
+salmon_red_data <- reduced_data %>%
+  filter(Area == "Salmon"| Area == "Anatone")
+matrix_salmon_red <- to_mv(salmon_red_data[,10:16], drop.allele = TRUE)
+fit.pca.salmon.red <- princomp(matrix_salmon_red, cor = TRUE)
+summary(fit.pca.salmon.red)
+pred.salmon.red <- predict(fit.pca.salmon.red)
+PCA_df_salmon_red <- data.frame(PC1 = pred.salmon.red[,1], PC2 = pred.salmon.red[,2], Treatment = salmon_red_data$Treatment,
+                            Area = salmon_red_data$Area, Pop = salmon_red_data$Plot)
+fig_pca_salmon_red <- ggplot(PCA_df_salmon_red)+
+  geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "bottom")+
+  xlab("PC1 (7.2%)")+
+  ylab("PC2 (5.7%)")+
+  scale_color_manual(values = c("#F8766D",
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"))
 
 #create data file in STRUCTURE format 
 write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = TRUE, mode = "structure", stratum = "Plot")
@@ -140,6 +190,7 @@ remotes::install_github('royfrancis/pophelper')
 
 # install the package from GitHub
 remotes::install_github('royfrancis/pophelperShiny')
+
 
 # load library for use
 library(pophelperShiny)
