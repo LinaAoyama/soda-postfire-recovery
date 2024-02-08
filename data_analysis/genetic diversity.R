@@ -11,6 +11,11 @@ library(ggpubr)
 source("data_compiling/data compile.R")
 column_class(genomic_data, class = "locus")
 
+# this is a function for calculating standard error
+se<-function(x){
+  sd(x, na.rm = TRUE)/sqrt(length(x))
+} 
+
 #visualize allele frequencies
 plot(genomic_data$Loc025) #84, 87, 141, 144, 147, 150, 153, 156, 160, 164, 167
 L025 <- ggplot() + geom_locus(aes(x = Loc025, fill = Treatment), data = genomic_data)+
@@ -65,14 +70,15 @@ ggarrange(L025, L040, L209, L262, L307, L338, L396, L548, L618, L831,
 #Allelic richness (total number of alleles)
 Arichness.diversity <- genetic_diversity(genomic_data, stratum = "Treatment", mode = "A")
 colnames(Arichness.diversity) <- c('Treatment', 'Locus', 'A')
-
-ggplot(Arichness.diversity, aes(y = A, x = Treatment, fill = Treatment))+
+A_plot <- ggplot(Arichness.diversity, aes(y = A, x = Treatment, fill = Treatment))+
   geom_col()+
-  facet_wrap(~Locus)+
+  facet_wrap(~Locus, ncol = 2)+
   scale_fill_manual(values = c("#F8766D",
                                 "#f7b2d8",
                                 "#999999",
-                                "#b2ffc3"))
+                                "#b2ffc3"))+
+  theme(legend.position="top")+
+  ylab("Total number of alleles (A)")
 
 #Allelic richness (Effective Number of Alleles)
 A.diversity <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Ae")
@@ -94,9 +100,25 @@ genetic.diversity <- left_join(A.diversity, Ho.diversity) %>%
 genetic.diversity.pop <- genetic.diversity %>%
   group_by(Plot, Treatment, Area) %>%
   summarize(mean_Ae = mean(Ae), 
+            se_Ae = se(Ae),
             mean_Ho = mean(Ho), 
-            mean_He = mean(He)) %>%
+            se_Ho = se(Ho),
+            mean_He = mean(He),
+            se_He = se(He)) %>%
   left_join(., plot_info) 
+
+anova(lm(Ae ~ Treatment * Area, genetic.diversity %>% filter(Treatment != "Anatone")))
+TukeyHSD(aov(Ae ~ Treatment * Area, genetic.diversity))
+anova(lm(Ho ~ Treatment * Area, genetic.diversity %>% filter(Treatment != "Anatone")))
+TukeyHSD(aov(Ho ~  Area, genetic.diversity))
+anova(lm(He ~ Treatment * Area, genetic.diversity %>% filter(Treatment != "Anatone")))
+TukeyHSD(aov(He ~ Treatment * Area, genetic.diversity))
+#Summary by area
+mean.genetic.diveristy <- genetic.diversity.pop %>%
+  group_by(Area) %>%
+  summarize(Ae = mean(mean_Ae), se_Ae = se(mean_Ae),
+            Ho = mean(mean_Ho), se_Ho = se(mean_Ho),
+            He = mean(mean_He), se_He = se(mean_He))
 
 #Summary by treatment and area
 mean.genetic.diveristy <- genetic.diversity.pop %>%
@@ -106,11 +128,11 @@ mean.genetic.diveristy <- genetic.diversity.pop %>%
             He = mean(mean_He), se_He = se(mean_He))
 
 #Plot diversity by treatment and area
-A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))+
+Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))+
   geom_point()+
   geom_errorbar(aes(ymin = Ae-se_Ae, ymax = Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ae))+
-  ylab(bquote(Mean~Allelic~Richness))+
+  ylab(bquote(Ae))+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -119,14 +141,15 @@ A_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
         axis.title.x = element_blank(),
-        legend.position = "right")
+        legend.position = "top")
   #facet_wrap(~Area, ncol = 5)+
   
 Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ho, col = Area))+
   geom_point()+
   geom_errorbar(aes(ymin = Ho-se_Ho, ymax = Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ho))+
-  ylab(bquote(Mean~Obs~Heterozygosity))+
+  ylab(bquote(Ho))+
+  ylim(0, 1)+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -140,7 +163,8 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area)
   geom_point()+
   geom_errorbar(aes(ymin = He-se_He, ymax = He+se_He), width = 0.2, alpha = 0.9, size = 1)+
   geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_He))+
-  ylab(bquote(Mean~Exp~Heterozygosity))+
+  ylab(bquote(He))+
+  ylim(0, 1)+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -149,12 +173,22 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area)
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
         axis.title.x = element_blank())
+  #ggtitle("Mean expected heterozygosity")
   #facet_wrap(~Area, ncol = 5)+
   
+ggarrange(A_plot, ggarrange(Ae_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, align = "hv", 
+          legend = "top", labels = c("b)", "c)", "d)")), ncol = 2, labels = c("a)"))
 
-ggarrange(A_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, align = "hv", 
-          legend = "right", labels = c("a)", "b)", "c)"))
-
+Fis <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Fis")
+colnames(Fis) <- c('Plot', 'Locus', 'Fis')
+Fis.pop <- left_join(Fis, plot_info)  %>%
+  filter(Plot != "Anatone") %>%
+  group_by(Area) %>%
+  summarize(mean_Fis = mean(Fis, na.rm = TRUE),
+            se_Fis = se(Fis)) 
+Fis.overall <- Fis %>%
+  summarize(mean_Fis = mean(Fis, na.rm = TRUE),
+            se_Fis = se(Fis))
 # #Summary by each primer
 # mean.genetic.diveristy.primer <- genetic.diversity %>%
 #   group_by(Treatment, Area, Locus) %>%
@@ -209,8 +243,12 @@ Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
   #annotate("text", x = 3900, y = 17.5, label = "Burn-Unseeded (BU): y = - 0.0004x + 6.50, R2 = 0.03, p = 0.02")
 
 anova(lm(Ae~Distance_m*Treatment, genetic.diversity%>%filter(Treatment%in%c("BS", "BU"))))
-summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))))
-summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "West")))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Rockville")))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
+summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
 
 Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ho, col = Area))+
   geom_jitter()+
@@ -229,6 +267,13 @@ Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
                                 "#00BFC4",
                                 "#C77CFF"))
 
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "West")))
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Rockville")))
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
+summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
+
 He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_He, col = Area))+
   geom_jitter()+
   theme(text = element_text(size=15),
@@ -246,6 +291,13 @@ He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
   scale_color_manual(values = c("#7CAE00",
                                 "#00BFC4",
                                 "#C77CFF"))
+
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "West")))
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Rockville")))
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
+summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
 
 ggarrange(Ae_distance, He_distance, Ho_distance, ncol = 1, align = "hv",
           common.legend = TRUE, legend = "right", labels = c("a)", "b)", "c)"))
