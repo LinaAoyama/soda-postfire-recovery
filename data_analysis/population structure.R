@@ -6,6 +6,8 @@ library(tidyverse)
 library(ggplot2)
 library(adegenet)
 library(ggpubr)
+library(vegan)
+library(reshape2)
 
 #load data
 source("data_compiling/data compile.R")
@@ -29,6 +31,17 @@ fig_pca_all <- ggplot(PCA_df)+
                         legend.position = "right")+
                   xlab("PC1 (3.9%)")+
                   ylab("PC2 (2.9%)")
+
+#PERMANOVA
+genomic_data_long <- genomic_data %>%
+  pivot_longer(cols = Loc025:Loc831, names_to = "Locus", values_to = "Alleles")
+genomic_data_long$Alleles <- as.character(genomic_data_long$Alleles)
+genomic_data_long <- as.data.frame(genomic_data_long)
+genomic_data_long <- separate(genomic_data_long, col = Alleles, into = c('Allele1', 'Allele2'), sep = ':')
+#genomic_data_long <- genomic_data_long %>%
+#  pivot_longer(cols = Allele1:Allele2, names_to = "Allele", values_to = "values")
+genomic_data_long$Allele1 <- as.numeric(genomic_data_long$Allele1)
+permanova <- adonis(Allele1~Area, data = genomic_data_long, perm = 99, method = "euclidean") #PERMANOVA results: Significant treatment effect p = 0.001
 
 #PCA subset by area to see Anatone and seeded trts better
 rockville_raw_data <- genomic_data %>%
