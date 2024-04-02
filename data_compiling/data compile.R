@@ -18,3 +18,5 @@ genomic_data <- genomic_data %>%
                           Area == 'C' ~ 'Salmon',
                           Area == 'D' ~ 'West',
                           Area == 'E' ~ 'Rockville'))
+
+psspdensity <- read_csv(paste(datpath, "/Soda_plantcomp/Bluebunch density.csv", sep = ""))
