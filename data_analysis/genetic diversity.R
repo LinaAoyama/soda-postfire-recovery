@@ -128,10 +128,10 @@ mean.genetic.diveristy <- genetic.diversity.pop %>%
             He = mean(mean_He), se_He = se(mean_He))
 
 #Plot diversity by treatment and area
-Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area))+
+Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ae, col = Treatment))+
   geom_point()+
   geom_errorbar(aes(ymin = Ae-se_Ae, ymax = Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
-  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ae))+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Area, y = mean_Ae))+
   ylab(bquote(Ae))+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
@@ -141,13 +141,17 @@ Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ae, col = Area)
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
         axis.title.x = element_blank(),
-        legend.position = "top")
+        legend.position = "top")+
+  scale_color_manual(values = c("#F8766D",
+                               "#f7b2d8",
+                               "#999999",
+                               "#b2ffc3"))
   #facet_wrap(~Area, ncol = 5)+
   
-Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ho, col = Area))+
+Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ho, col = Treatment))+
   geom_point()+
   geom_errorbar(aes(ymin = Ho-se_Ho, ymax = Ho+se_Ho), width = 0.2, alpha = 0.9, size = 1)+
-  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_Ho))+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Area, y = mean_Ho))+
   ylab(bquote(Ho))+
   ylim(0, 1)+
   theme(text = element_text(size=15),
@@ -156,13 +160,17 @@ Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = Ho, col = Area)
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        axis.title = element_text(size = 12))
+        axis.title = element_text(size = 12))+
+  scale_color_manual(values = c("#F8766D",
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"))
   #facet_wrap(~Area, ncol = 5)+
   
-He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area))+
+He_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = He, col = Treatment))+
   geom_point()+
   geom_errorbar(aes(ymin = He-se_He, ymax = He+se_He), width = 0.2, alpha = 0.9, size = 1)+
-  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Treatment, y = mean_He))+
+  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Area, y = mean_He))+
   ylab(bquote(He))+
   ylim(0, 1)+
   theme(text = element_text(size=15),
@@ -172,7 +180,11 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Treatment, y = He, col = Area)
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
-        axis.title.x = element_blank())
+        axis.title.x = element_blank())+
+  scale_color_manual(values = c("#F8766D",
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"))
   #ggtitle("Mean expected heterozygosity")
   #facet_wrap(~Area, ncol = 5)+
   
@@ -222,7 +234,7 @@ Fis.overall <- Fis %>%
 #   geom_jitter(data = genetic.diversity, aes(x = Treatment, y = He))
 
 #Richness by distance from fire edge
-Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ae, col = Area))+
+Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ae, col = Treatment))+
   geom_jitter()+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
@@ -232,13 +244,14 @@ Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
         axis.title.x = element_blank())+
-  geom_smooth(method = lm)+
-  ylab(bquote(Mean~Allelic~Richness))+
+  geom_smooth(method = lm, se = FALSE)+
+  ylab(bquote(Ae))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)+
-  scale_color_manual(values = c("#7CAE00",
-                                "#00BFC4",
-                                "#C77CFF"))
+  facet_grid(~Area)+
+  scale_color_manual(values = c(
+                                "#f7b2d8",
+                                "#999999"
+                                ))
   #annotate("text", x = 3900, y = 20, label = "Burn-Seeded (BS): y = - 0.0003x + 6.98, R2 = 0.01, p = 0.19")+
   #annotate("text", x = 3900, y = 17.5, label = "Burn-Unseeded (BU): y = - 0.0004x + 6.50, R2 = 0.03, p = 0.02")
 
@@ -250,7 +263,7 @@ summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%fil
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
 summary(lm(Ae~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
 
-Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ho, col = Area))+
+Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_Ho, col = Treatment))+
   geom_jitter()+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
@@ -259,13 +272,14 @@ Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12))+
-  geom_smooth(method = lm)+
-  ylab(bquote(Mean~Obs~Heterozygosity))+
+  geom_smooth(method = lm, se = FALSE)+
+  ylab(bquote(Ho))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)+
-  scale_color_manual(values = c("#7CAE00",
-                                "#00BFC4",
-                                "#C77CFF"))
+  facet_grid(~Area)+
+  scale_color_manual(values = c(
+    "#f7b2d8",
+    "#999999"
+  ))
 
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
@@ -274,7 +288,7 @@ summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%fil
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
 
-He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_He, col = Area))+
+He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU")), aes(x = Distance_m, y = mean_He, col = Treatment))+
   geom_jitter()+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
@@ -284,13 +298,14 @@ He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
         axis.title.x = element_blank())+
-  geom_smooth(method = lm)+
-  ylab(bquote(Mean~Exp~Heterozygosity))+
+  geom_smooth(method = lm, se = FALSE)+
+  ylab(bquote(He))+
   xlab("Distance from Fire Edge (m)")+
-  facet_grid(~Treatment)+
-  scale_color_manual(values = c("#7CAE00",
-                                "#00BFC4",
-                                "#C77CFF"))
+  facet_grid(~Area)+
+  scale_color_manual(values = c(
+    "#f7b2d8",
+    "#999999"
+  ))
 
 summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
 summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
