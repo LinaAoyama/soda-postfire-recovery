@@ -30,7 +30,8 @@ fig_pca_all <- ggplot(PCA_df)+
                         axis.title = element_text(size = 15),
                         legend.position = "right")+
                   xlab("PC1 (3.9%)")+
-                  ylab("PC2 (2.9%)")
+                  ylab("PC2 (2.9%)")+
+                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 17, 15, 3))
 
 #PERMANOVA
 genomic_data_long <- genomic_data %>%
@@ -67,7 +68,11 @@ fig_pca_rockville <- ggplot(PCA_df_rockville)+
                         scale_color_manual(values = c("#F8766D",
                                                       "#f7b2d8",
                                                       "#999999",
-                                                      "#b2ffc3"))
+                                                      "#b2ffc3"), 
+                                           labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+                        scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                                           values = c(16, 17, 15, 3))
+
                         #annotate("text", label = "Rockville", size = 5, x = -6, y = )
 
 salmon_raw_data <- genomic_data %>%
@@ -192,20 +197,20 @@ write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fi
 #Run STRUCTURE Harvester externally on STRUCTURE output
 #Visualize clumpp files with pophelper: https://www.royfrancis.com/pophelperShiny/index.html
 # install dependencies and remotes
-install.packages(c("ggplot2","gridExtra","label.switching","tidyr","remotes",
-                   "colourpicker","DT","highcharter","htmlwidgets","magrittr",
-                   "markdown","RColorBrewer","shiny","shinyAce","shinyBS",
-                   "shinythemes","shinyWidgets","viridisLite","writexl"),
-                 repos = "http://cran.us.r-project.org")
+#install.packages(c("ggplot2","gridExtra","label.switching","tidyr","remotes",
+#                   "colourpicker","DT","highcharter","htmlwidgets","magrittr",
+#                   "markdown","RColorBrewer","shiny","shinyAce","shinyBS",
+#                   "shinythemes","shinyWidgets","viridisLite","writexl"),
+#                repos = "http://cran.us.r-project.org")
 
 # install pophelper package from GitHub
-remotes::install_github('royfrancis/pophelper')
+#remotes::install_github('royfrancis/pophelper')
 
 # install the package from GitHub
-remotes::install_github('royfrancis/pophelperShiny')
+#remotes::install_github('royfrancis/pophelperShiny')
 
 
-# load library for use
+# load library for use R version 4.3
 library(pophelperShiny)
 
 # launch app

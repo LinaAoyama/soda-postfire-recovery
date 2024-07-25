@@ -66,6 +66,10 @@ ggarrange(L025, L040, L209, L262, L307, L338, L396, L548, L618, L831,
 #   geom_frequencies(freqs.loci.strata) +
 #   facet_grid(Stratum ~.)+ theme(legend.position = "none")
 
+#Total number of genotypes across 10 loci
+genomic_data$genotype <- apply( genomic_data[ ,10:19] , 1 , paste , collapse = "-" )
+num_genotypes <- length(unique(genomic_data$genotype))
+
 #number of alleles per treatment per loci 
 #Allelic richness (total number of alleles)
 Arichness.diversity <- genetic_diversity(genomic_data, stratum = "Treatment", mode = "A")
@@ -76,9 +80,12 @@ A_plot <- ggplot(Arichness.diversity, aes(y = A, x = Treatment, fill = Treatment
   scale_fill_manual(values = c("#F8766D",
                                 "#f7b2d8",
                                 "#999999",
-                                "#b2ffc3"))+
-  theme(legend.position="top")+
-  ylab("Total number of alleles (A)")
+                                "#b2ffc3"), 
+                    labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+  theme(legend.position="top", 
+        axis.text.x = element_text(angle = 40, hjust = 0.5, vjust = 0.5))+
+  ylab("Total number of alleles (A)")+
+  scale_x_discrete(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))
 
 #Allelic richness (Effective Number of Alleles)
 A.diversity <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Ae")
@@ -251,7 +258,9 @@ Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
   scale_color_manual(values = c(
                                 "#f7b2d8",
                                 "#999999"
-                                ))
+                                ), 
+                     labels = c("Burned-Seeded", 
+                                "Burned-Unseeded"))
   #annotate("text", x = 3900, y = 20, label = "Burn-Seeded (BS): y = - 0.0003x + 6.98, R2 = 0.01, p = 0.19")+
   #annotate("text", x = 3900, y = 17.5, label = "Burn-Unseeded (BU): y = - 0.0004x + 6.50, R2 = 0.03, p = 0.02")
 
