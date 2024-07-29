@@ -256,11 +256,12 @@ Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        #panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
-        axis.title.x = element_blank())+
+        axis.title.x = element_blank(),
+        plot.margin = unit(c(0,0.2,0,1), "cm"))+
   geom_smooth(method = lm, se = FALSE)+
-  ylab(bquote(Ae))+
+  ylab(expression(paste("Allele \nrichness")))+
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Area)+
   scale_color_manual(values = c(
@@ -287,10 +288,11 @@ Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        axis.title = element_text(size = 12))+
+        #panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 12),
+        plot.margin = unit(c(0,0.2,0,1), "cm"))+
   geom_smooth(method = lm, se = FALSE)+
-  ylab(bquote(Ho))+
+  ylab(expression(paste("Observed \nheterozygosity")))+
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Area)+
   scale_color_manual(values = c(
@@ -312,11 +314,12 @@ He_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        #panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12),
-        axis.title.x = element_blank())+
+        axis.title.x = element_blank(),
+        plot.margin = unit(c(0,0.2,0,1), "cm"))+
   geom_smooth(method = lm, se = FALSE)+
-  ylab(bquote(He))+
+  ylab(expression(paste("Expected \nheterozygosity")))+
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Area)+
   scale_color_manual(values = c(
