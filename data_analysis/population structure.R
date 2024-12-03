@@ -13,14 +13,16 @@ library(reshape2)
 source("data_compiling/data compile.R")
 
 #PCA of raw genotypes
-matrix_raw_data <- to_mv(genomic_data[,10:19], drop.allele = TRUE)
+#matrix_raw_data <- to_mv(genomic_data[,10:19], drop.allele = FALSE)
+#matrix_raw_data_test <- genomic_data[,10:19]
+matrix_raw_data <- genomic_data_raw[,10:29]
 fit.pca <- princomp(matrix_raw_data, cor = TRUE)
 summary(fit.pca)
 pred <- predict(fit.pca)
-PCA_df <- data.frame(PC1 = pred[,1], PC2 = pred[,2], Treatment = genomic_data$Treatment,
-                     Area = genomic_data$Area, Pop = genomic_data$Plot)
+PCA_df <- data.frame(PC1 = pred[,1], PC2 = pred[,2], Treatment = genomic_data_raw$Treatment,
+                     Area = genomic_data_raw$Area, Pop = genomic_data_raw$Plot)
 fig_pca_all <- ggplot(PCA_df)+
-                  geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
+                  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
                   theme(text = element_text(size=15),
                         panel.grid.major = element_blank(),
                         panel.grid.minor = element_blank(),
@@ -29,25 +31,50 @@ fig_pca_all <- ggplot(PCA_df)+
                         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                         axis.title = element_text(size = 15),
                         legend.position = "right")+
-                  xlab("PC1 (3.9%)")+
-                  ylab("PC2 (2.9%)")+
-                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 17, 15, 3))
+                  xlab("PC1 (27.3%)")+
+                  ylab("PC2 (13.4%)")+
+                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))
 
 #PERMANOVA
-genomic_data_long <- genomic_data %>%
-  pivot_longer(cols = Loc025:Loc831, names_to = "Locus", values_to = "Alleles")
-genomic_data_long$Alleles <- as.character(genomic_data_long$Alleles)
-genomic_data_long <- as.data.frame(genomic_data_long)
-genomic_data_long <- separate(genomic_data_long, col = Alleles, into = c('Allele1', 'Allele2'), sep = ':')
-#genomic_data_long <- genomic_data_long %>%
-#  pivot_longer(cols = Allele1:Allele2, names_to = "Allele", values_to = "values")
-genomic_data_long$Allele1 <- as.numeric(genomic_data_long$Allele1)
-permanova <- adonis(Allele1~Area, data = genomic_data_long, perm = 99, method = "euclidean") #PERMANOVA results: Significant treatment effect p = 0.001
+# genomic_data_long <- genomic_data %>%
+#   pivot_longer(cols = Loc025:Loc831, names_to = "Locus", values_to = "Alleles")
+# genomic_data_long$Alleles <- as.character(genomic_data_long$Alleles)
+# genomic_data_long <- as.data.frame(genomic_data_long)
+# genomic_data_long <- separate(genomic_data_long, col = Alleles, into = c('Allele1', 'Allele2'), sep = ':')
+# #genomic_data_long <- genomic_data_long %>%
+# #  pivot_longer(cols = Allele1:Allele2, names_to = "Allele", values_to = "values")
+# genomic_data_long$Allele1 <- as.numeric(genomic_data_long$Allele1)
+# permanova <- adonis(Allele1~Area, data = genomic_data_long, perm = 99, method = "euclidean") #PERMANOVA results: Significant treatment effect p = 0.001
+genomic_data_env <- genomic_data_raw[,1:9]
+adonis2(matrix_raw_data ~ Area*Treatment, data = genomic_data_env)  #PERMANOVA results: Significant area and treatment effects p = 0.001
+
+#Try removing loci 307 and 396 (>50% missing values)
+matrix_raw_data_truncated <- genomic_data_raw[,10:29]
+matrix_raw_data_truncated <- matrix_raw_data_truncated[,-c(9,10, 13, 14)]
+fit.pca_truncated <- princomp(matrix_raw_data_truncated, cor = TRUE)
+summary(fit.pca_truncated)
+pred_truncated <- predict(fit.pca_truncated)
+PCA_df_truncated <- data.frame(PC1 = pred_truncated[,1], PC2 = pred_truncated[,2], Treatment = genomic_data_raw$Treatment,
+                     Area = genomic_data_raw$Area, Pop = genomic_data_raw$Plot)
+fig_pca_all_truncated <- ggplot(PCA_df_truncated)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "right")+
+  xlab("PC1 (29.9%)")+
+  ylab("PC2 (14.6%)")+
+  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))
+
 
 #PCA subset by area to see Anatone and seeded trts better
-rockville_raw_data <- genomic_data %>%
+rockville_raw_data <- genomic_data_raw %>%
   filter(Area == "Rockville"| Area == "Anatone")
-matrix_rockville <- to_mv(rockville_raw_data[,10:19], drop.allele = TRUE)
+matrix_rockville <- rockville_raw_data[,10:29]
 fit.pca.rockville <- princomp(matrix_rockville, cor = TRUE)
 summary(fit.pca.rockville)
 pred.rockville <- predict(fit.pca.rockville)
@@ -63,21 +90,21 @@ fig_pca_rockville <- ggplot(PCA_df_rockville)+
                               panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                               axis.title = element_text(size = 15),
                               legend.position = "bottom")+
-                        xlab("PC1 (3.8%)")+
-                        ylab("PC2 (3.1%)")+
-                        scale_color_manual(values = c("#F8766D",
+                        xlab("PC1 (18.0%)")+
+                        ylab("PC2 (13.3%)")+
+                        scale_color_manual(values = c("#F8766D", 
                                                       "#f7b2d8",
                                                       "#999999",
                                                       "#b2ffc3"), 
                                            labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
                         scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
-                                           values = c(16, 17, 15, 3))
+                                           values = c(16, 3, 17, 15))
 
                         #annotate("text", label = "Rockville", size = 5, x = -6, y = )
 
-salmon_raw_data <- genomic_data %>%
+salmon_raw_data <- genomic_data_raw %>%
   filter(Area == "Salmon"| Area == "Anatone")
-matrix_salmon <- to_mv(salmon_raw_data[,10:19], drop.allele = TRUE)
+matrix_salmon <- salmon_raw_data[,10:29]
 fit.pca.salmon <- princomp(matrix_salmon, cor = TRUE)
 summary(fit.pca.salmon)
 pred.salmon <- predict(fit.pca.salmon)
@@ -93,16 +120,19 @@ fig_pca_salmon <- ggplot(PCA_df_salmon)+
                           panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                           axis.title = element_text(size = 15),
                           legend.position = "bottom")+
-                    xlab("PC1 (7.4%)")+
-                    ylab("PC2 (5.7%)")+
+                    xlab("PC1 (26.6%)")+
+                    ylab("PC2 (14.6%)")+
                     scale_color_manual(values = c("#F8766D",
                                                   "#f7b2d8",
                                                   "#999999",
-                                                  "#b2ffc3"))
+                                                  "#b2ffc3"), 
+                                       labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+                    scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                                       values = c(16, 3, 17, 15))
 
-west_raw_data <- genomic_data %>%
+west_raw_data <- genomic_data_raw %>%
   filter(Area == "West"| Area == "Anatone")
-matrix_west <- to_mv(west_raw_data[,10:19], drop.allele = TRUE)
+matrix_west <- west_raw_data[,10:29]
 fit.pca.west <- princomp(matrix_west, cor = TRUE)
 summary(fit.pca.west)
 pred.west <- predict(fit.pca.west)
@@ -118,15 +148,47 @@ fig_pca_west <- ggplot(PCA_df_west)+
                         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
                         axis.title = element_text(size = 15),
                         legend.position = "bottom")+
-                  xlab("PC1 (9.1%)")+
-                  ylab("PC2 (7.7%)")+
+                  xlab("PC1 (26.2%)")+
+                  ylab("PC2 (15.1%)")+
                   scale_color_manual(values = c("#F8766D",
                                                 "#f7b2d8",
                                                 "#999999",
-                                                "#b2ffc3"))
+                                                "#b2ffc3"), 
+                                     labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                                     values = c(16, 3, 17, 15))
 
 ggarrange(fig_pca_all, ggarrange(fig_pca_rockville, fig_pca_salmon, fig_pca_west, labels = c("b)", "c)", "d)"), 
                                  ncol =3, nrow =1, common.legend = TRUE), labels = c("a)"), ncol = 1, nrow =2, heights = c(1.5, 1))
+
+#PCA subset by treatments
+BS_raw_data <- genomic_data_raw %>%
+  filter(Treatment == "BS"| Treatment == "Anatone")
+matrix_BS <- BS_raw_data[,10:29]
+fit.pca.BS <- princomp(matrix_BS, cor = TRUE)
+summary(fit.pca.BS)
+pred.BS <- predict(fit.pca.BS)
+PCA_df_BS <- data.frame(PC1 = pred.BS[,1], PC2 = pred.BS[,2], Treatment = BS_raw_data$Treatment,
+                            Area = BS_raw_data$Area, Pop = BS_raw_data$Plot)
+fig_pca_BS <- ggplot(PCA_df_BS)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Area), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "bottom")+
+  xlab("PC1 (26.6%)")+
+  ylab("PC2 (14.6%)")+
+  scale_color_manual(values = c("#F8766D",
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"), 
+                     labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                     values = c(16, 3, 17, 15))
 
 # #take out anatone cultivar
 # wild_only_data <- genomic_data[9:760,]
@@ -140,52 +202,52 @@ ggarrange(fig_pca_all, ggarrange(fig_pca_rockville, fig_pca_salmon, fig_pca_west
 #   geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
 #   theme_bw()
 
-#REMOVE loci with >50% missing data (L262, L307, L396)
-reduced_data <-  subset(genomic_data, select = -c(Loc262,Loc307, Loc396) )
-  
-matrix_red_data <- to_mv(reduced_data[,10:16], drop.allele = TRUE)
-fit.pca.red <- princomp(matrix_red_data, cor = TRUE)
-summary(fit.pca.red)
-pred.red <- predict(fit.pca.red)
-PCA_df_red <- data.frame(PC1 = pred.red[,1], PC2 = pred.red[,2], Treatment = reduced_data$Treatment,
-                     Area = reduced_data$Area, Pop = reduced_data$Plot)
-fig_pca_red <- ggplot(PCA_df_red)+
-  geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
-  theme(text = element_text(size=15),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        axis.title = element_text(size = 15),
-        legend.position = "right")+
-  xlab("PC1 (3.9%)")+
-  ylab("PC2 (2.8%)")
-
-salmon_red_data <- reduced_data %>%
-  filter(Area == "Salmon"| Area == "Anatone")
-matrix_salmon_red <- to_mv(salmon_red_data[,10:16], drop.allele = TRUE)
-fit.pca.salmon.red <- princomp(matrix_salmon_red, cor = TRUE)
-summary(fit.pca.salmon.red)
-pred.salmon.red <- predict(fit.pca.salmon.red)
-PCA_df_salmon_red <- data.frame(PC1 = pred.salmon.red[,1], PC2 = pred.salmon.red[,2], Treatment = salmon_red_data$Treatment,
-                            Area = salmon_red_data$Area, Pop = salmon_red_data$Plot)
-fig_pca_salmon_red <- ggplot(PCA_df_salmon_red)+
-  geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
-  theme(text = element_text(size=15),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank(),
-        axis.line = element_line(colour = "black"),
-        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-        axis.title = element_text(size = 15),
-        legend.position = "bottom")+
-  xlab("PC1 (7.2%)")+
-  ylab("PC2 (5.7%)")+
-  scale_color_manual(values = c("#F8766D",
-                                "#f7b2d8",
-                                "#999999",
-                                "#b2ffc3"))
+# #REMOVE loci with >50% missing data (L262, L307, L396)
+# reduced_data <-  subset(genomic_data, select = -c(Loc262,Loc307, Loc396) )
+#   
+# matrix_red_data <- to_mv(reduced_data[,10:16], drop.allele = TRUE)
+# fit.pca.red <- princomp(matrix_red_data, cor = TRUE)
+# summary(fit.pca.red)
+# pred.red <- predict(fit.pca.red)
+# PCA_df_red <- data.frame(PC1 = pred.red[,1], PC2 = pred.red[,2], Treatment = reduced_data$Treatment,
+#                      Area = reduced_data$Area, Pop = reduced_data$Plot)
+# fig_pca_red <- ggplot(PCA_df_red)+
+#   geom_point(aes(x = PC1, y = PC2, shape = Treatment, color = Area), size = 3)+
+#   theme(text = element_text(size=15),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_blank(),
+#         axis.line = element_line(colour = "black"),
+#         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+#         axis.title = element_text(size = 15),
+#         legend.position = "right")+
+#   xlab("PC1 (3.9%)")+
+#   ylab("PC2 (2.8%)")
+# 
+# salmon_red_data <- reduced_data %>%
+#   filter(Area == "Salmon"| Area == "Anatone")
+# matrix_salmon_red <- to_mv(salmon_red_data[,10:16], drop.allele = TRUE)
+# fit.pca.salmon.red <- princomp(matrix_salmon_red, cor = TRUE)
+# summary(fit.pca.salmon.red)
+# pred.salmon.red <- predict(fit.pca.salmon.red)
+# PCA_df_salmon_red <- data.frame(PC1 = pred.salmon.red[,1], PC2 = pred.salmon.red[,2], Treatment = salmon_red_data$Treatment,
+#                             Area = salmon_red_data$Area, Pop = salmon_red_data$Plot)
+# fig_pca_salmon_red <- ggplot(PCA_df_salmon_red)+
+#   geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
+#   theme(text = element_text(size=15),
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         panel.background = element_blank(),
+#         axis.line = element_line(colour = "black"),
+#         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+#         axis.title = element_text(size = 15),
+#         legend.position = "bottom")+
+#   xlab("PC1 (7.2%)")+
+#   ylab("PC2 (5.7%)")+
+#   scale_color_manual(values = c("#F8766D",
+#                                 "#f7b2d8",
+#                                 "#999999",
+#                                 "#b2ffc3"))
 
 #create data file in STRUCTURE format 
 write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = TRUE, mode = "structure", stratum = "Plot")

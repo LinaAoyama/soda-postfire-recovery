@@ -11,10 +11,16 @@ plot_info <- plot_info %>%
 
 plantcomp <- read_csv(paste(datpath, "/Soda_plantcomp/Plant_composition.csv", sep = ""))
 
-genomic_data <- read_population(paste(datpath, "/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.csv",sep =""),
+genomic_data <- read_population(paste(datpath, "/Genotyping/Cleaned/soda_fire_genomic_data_cleaned_v2.csv",sep =""),
                                 type = "column", locus.columns = 10:29)
+genomic_data_raw <- read_csv(paste(datpath, "/Genotyping/Cleaned/soda_fire_genomic_data_cleaned_v2.csv",sep ="")) %>%
+  mutate(Area = case_when(Area == 'Anatone' ~ 'Anatone',
+                          Area == 'C' ~ 'Salmon',
+                          Area == 'D' ~ 'West',
+                          Area == 'E' ~ 'Rockville'))
+
 genomic_data <- genomic_data %>%
-  mutate(Area = case_when(Area == 'Anatone' ~ 'Anatone', 
+  mutate(Area = case_when(Area == 'Anatone' ~ 'Anatone',
                           Area == 'C' ~ 'Salmon',
                           Area == 'D' ~ 'West',
                           Area == 'E' ~ 'Rockville'))
