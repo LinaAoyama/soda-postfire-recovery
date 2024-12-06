@@ -95,10 +95,13 @@ fig_pca_rockville <- ggplot(PCA_df_rockville)+
                         scale_color_manual(values = c("#F8766D", 
                                                       "#f7b2d8",
                                                       "#999999",
-                                                      "#b2ffc3"), 
-                                           labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
-                        scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
-                                           values = c(16, 3, 17, 15))
+                                                      "#b2ffc3"),                                                      
+                                           labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded" ))+
+                        scale_shape_manual(labels = c( "Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                                           values = c( 16, 3, 17, 15))+
+                        geom_point(data = PCA_df_rockville %>%
+                                     filter( Area == "Anatone"), 
+                                   aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)
 
                         #annotate("text", label = "Rockville", size = 5, x = -6, y = )
 
@@ -160,7 +163,134 @@ fig_pca_west <- ggplot(PCA_df_west)+
 
 ggarrange(fig_pca_all, ggarrange(fig_pca_rockville, fig_pca_salmon, fig_pca_west, labels = c("b)", "c)", "d)"), 
                                  ncol =3, nrow =1, common.legend = TRUE), labels = c("a)"), ncol = 1, nrow =2, heights = c(1.5, 1))
+######################################################################
+#PCA without Anatone
+#All areas
+data_no_anatone <- genomic_data_raw%>%
+                        filter( Area != "Anatone")
+matrix_raw_data_no_anatone <- data_no_anatone[,10:29]
+fit.pca_no_anatone <- princomp(matrix_raw_data_no_anatone, cor = TRUE)
+summary(fit.pca_no_anatone)
+pred_no_anatone <- predict(fit.pca_no_anatone)
+PCA_df_no_anatone <- data.frame(PC1 = pred_no_anatone[,1], PC2 = pred_no_anatone[,2], Treatment = data_no_anatone$Treatment,
+                     Area = data_no_anatone$Area, Pop = data_no_anatone$Plot)
+fig_pca_no_anatone <- ggplot(PCA_df_no_anatone)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "right")+
+  xlab("PC1 (26.7%)")+
+  ylab("PC2 (13.5%)")+
+  scale_color_manual(values = c("#7CAE00",
+                                "#00BFC4",
+                                "#C77CFF"), 
+                     labels = c( "Rockville", "Salmon", "West"))+
+  scale_shape_manual(labels = c("Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(3, 17, 15))
 
+genomic_data_env_no_anatone <- data_no_anatone[,1:9]
+adonis2(matrix_raw_data_no_anatone ~ Area*Treatment, data = genomic_data_env_no_anatone)  #PERMANOVA results: Significant area and treatment effects p = 0.001
+
+#Rockville no anatone
+rockville_raw_data_no_anatone <- data_no_anatone %>%
+  filter(Area == "Rockville")
+matrix_rockville_no_anatone <- rockville_raw_data_no_anatone[,10:29]
+fit.pca.rockville_no_anatone <- princomp(matrix_rockville_no_anatone, cor = TRUE)
+summary(fit.pca.rockville_no_anatone)
+pred.rockville_no_anatone <- predict(fit.pca.rockville_no_anatone)
+PCA_df_rockville_no_anatone <- data.frame(PC1 = pred.rockville_no_anatone[,1], PC2 = pred.rockville_no_anatone[,2], Treatment = rockville_raw_data_no_anatone$Treatment,
+                               Area = rockville_raw_data_no_anatone$Area, Pop = rockville_raw_data_no_anatone$Plot)
+fig_pca_rockville_no_anatone <- ggplot(PCA_df_rockville_no_anatone)+
+  geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "bottom")+
+  xlab("PC1 (18.3%)")+
+  ylab("PC2 (13.5%)")+
+  scale_color_manual(values = c(
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"),                                                      
+                     labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded" ))+
+  scale_shape_manual(labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                     values = c( 3, 17, 15))
+
+adonis2(matrix_rockville_no_anatone ~ Treatment, data = genomic_data_env_no_anatone%>%filter(Area == "Rockville"))  #PERMANOVA results: Significant treatment effects p = 0.001
+
+#Salmon no anatone
+salmon_raw_data_no_anatone <- data_no_anatone %>%
+  filter(Area == "Salmon")
+matrix_salmon_no_anatone <- salmon_raw_data_no_anatone[,10:29]
+fit.pca.salmon_no_anatone <- princomp(matrix_salmon_no_anatone, cor = TRUE)
+summary(fit.pca.salmon_no_anatone)
+pred.salmon_no_anatone <- predict(fit.pca.salmon_no_anatone)
+PCA_df_salmon_no_anatone <- data.frame(PC1 = pred.salmon_no_anatone[,1], PC2 = pred.salmon_no_anatone[,2], Treatment = salmon_raw_data_no_anatone$Treatment,
+                            Area = salmon_raw_data_no_anatone$Area, Pop = salmon_raw_data_no_anatone$Plot)
+fig_pca_salmon_no_anatone <- ggplot(PCA_df_salmon_no_anatone)+
+  geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "bottom")+
+  xlab("PC1 (25.3%)")+
+  ylab("PC2 (14.7%)")+
+  scale_color_manual(values = c(
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"), 
+                     labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+  scale_shape_manual(labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                     values = c( 3, 17, 15))
+
+adonis2(matrix_salmon_no_anatone ~ Treatment, data = genomic_data_env_no_anatone%>%filter(Area == "Salmon"))  #PERMANOVA results: Significant treatment effects p = 0.001
+
+#West no anatone
+west_raw_data_no_anatone <- data_no_anatone %>%
+  filter(Area == "West")
+matrix_west_no_anatone <- west_raw_data_no_anatone[,10:29]
+fit.pca.west_no_anatone <- princomp(matrix_west_no_anatone, cor = TRUE)
+summary(fit.pca.west_no_anatone)
+pred.west_no_anatone <- predict(fit.pca.west_no_anatone)
+PCA_df_west_no_anatone <- data.frame(PC1 = pred.west_no_anatone[,1], PC2 = pred.west_no_anatone[,2], Treatment = west_raw_data_no_anatone$Treatment,
+                          Area = west_raw_data_no_anatone$Area, Pop = west_raw_data_no_anatone$Plot)
+fig_pca_west_no_anatone <- ggplot(PCA_df_west_no_anatone)+
+  geom_point(aes(x = PC1, y = PC2, color = Treatment, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "bottom")+
+  xlab("PC1 (24.8%)")+
+  ylab("PC2 (15.2%)")+
+  scale_color_manual(values = c(
+                                "#f7b2d8",
+                                "#999999",
+                                "#b2ffc3"), 
+                     labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+  scale_shape_manual(labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
+                     values = c( 3, 17, 15))
+
+adonis2(matrix_west_no_anatone ~ Treatment, data = genomic_data_env_no_anatone%>%filter(Area == "West"))  #PERMANOVA results: Significant treatment effects p = 0.001
+
+ggarrange(fig_pca_no_anatone, ggarrange(fig_pca_rockville_no_anatone, fig_pca_salmon_no_anatone, fig_pca_west_no_anatone, labels = c("b)", "c)", "d)"), 
+                                 ncol =3, nrow =1, common.legend = TRUE), labels = c("a)"), ncol = 1, nrow =2, heights = c(1.5, 1))
+###################################################################################
 #PCA subset by treatments
 BS_raw_data <- genomic_data_raw %>%
   filter(Treatment == "BS"| Treatment == "Anatone")
@@ -171,7 +301,7 @@ pred.BS <- predict(fit.pca.BS)
 PCA_df_BS <- data.frame(PC1 = pred.BS[,1], PC2 = pred.BS[,2], Treatment = BS_raw_data$Treatment,
                             Area = BS_raw_data$Area, Pop = BS_raw_data$Plot)
 fig_pca_BS <- ggplot(PCA_df_BS)+
-  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Area), size = 3)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
   theme(text = element_text(size=15),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -179,16 +309,57 @@ fig_pca_BS <- ggplot(PCA_df_BS)+
         axis.line = element_line(colour = "black"),
         panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 15),
-        legend.position = "bottom")+
-  xlab("PC1 (26.6%)")+
-  ylab("PC2 (14.6%)")+
-  scale_color_manual(values = c("#F8766D",
-                                "#f7b2d8",
-                                "#999999",
-                                "#b2ffc3"), 
-                     labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
-  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
-                     values = c(16, 3, 17, 15))
+        legend.position = "none")+
+  xlab("PC1 (32.9%)")+
+  ylab("PC2 (14.7%)")+
+  scale_shape_manual(labels = c("Anatone", "Burned-Seeded"), values = c(16, 3))
+
+BU_raw_data <- genomic_data_raw %>%
+  filter(Treatment == "BU"| Treatment == "Anatone")
+matrix_BU <- BU_raw_data[,10:29]
+fit.pca.BU <- princomp(matrix_BU, cor = TRUE)
+summary(fit.pca.BU)
+pred.BU <- predict(fit.pca.BU)
+PCA_df_BU <- data.frame(PC1 = pred.BU[,1], PC2 = pred.BU[,2], Treatment = BU_raw_data$Treatment,
+                        Area = BU_raw_data$Area, Pop = BU_raw_data$Plot)
+fig_pca_BU <- ggplot(PCA_df_BU)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "none")+
+  xlab("PC1 (32.9%)")+
+  ylab("PC2 (14.7%)")+
+  scale_shape_manual(labels = c("Anatone", "Burned-Unseeded"), values = c(16, 17))
+  
+UU_raw_data <- genomic_data_raw %>%
+  filter(Treatment == "UU"| Treatment == "Anatone")
+matrix_UU <- UU_raw_data[,10:29]
+fit.pca.UU <- princomp(matrix_UU, cor = TRUE)
+summary(fit.pca.UU)
+pred.UU <- predict(fit.pca.UU)
+PCA_df_UU <- data.frame(PC1 = pred.UU[,1], PC2 = pred.UU[,2], Treatment = UU_raw_data$Treatment,
+                        Area = UU_raw_data$Area, Pop = UU_raw_data$Plot)
+fig_pca_UU <- ggplot(PCA_df_UU)+
+  geom_point(aes(x = PC1, y = PC2, color = Area, shape = Treatment), size = 3)+
+  theme(text = element_text(size=15),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+        axis.title = element_text(size = 15),
+        legend.position = "none")+
+  xlab("PC1 (25.0%)")+
+  ylab("PC2 (15.8%)")+
+  scale_shape_manual(labels = c("Anatone", "Unburned-Unseeded"), values = c(16, 15))
+
+ggarrange(fig_pca_all, ggarrange(fig_pca_BS, fig_pca_BU, fig_pca_UU, labels = c("b)", "c)", "d)"), 
+                                 ncol =3, nrow =1), labels = c("a)"), ncol = 1, nrow =2, heights = c(1.5, 1))
 
 # #take out anatone cultivar
 # wild_only_data <- genomic_data[9:760,]
@@ -249,9 +420,13 @@ fig_pca_BS <- ggplot(PCA_df_BS)+
 #                                 "#999999",
 #                                 "#b2ffc3"))
 
+#Remove anatone from genomic_data
+genomic_data_no_anatone <- genomic_data%>%
+  filter( Area != "Anatone")
+
 #create data file in STRUCTURE format 
 write_population(genomic_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_cleaned.str", row.names = TRUE, mode = "structure", stratum = "Plot")
-#write_population(wild_only_data, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_no_anatone.str", row.names = TRUE, mode = "structure", stratum = "Plot")
+write_population(genomic_data_no_anatone, "C:/Users/Lina/Dropbox/Academics/Projects/Soda_Fire/Data/Genotyping/Cleaned/soda_fire_genomic_data_no_anatone.str", row.names = TRUE, mode = "structure", stratum = "Plot")
 
 #Run STRUCTURE externally on soda_fire_genomic_data_cleaned.str
 #100k burn-in period, 100k iterations, K=1 to 6, run 10 times
