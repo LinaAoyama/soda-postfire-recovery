@@ -33,7 +33,12 @@ fig_pca_all <- ggplot(PCA_df)+
                         legend.position = "right")+
                   xlab("PC1 (27.3%)")+
                   ylab("PC2 (13.4%)")+
-                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))
+                  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))+
+                  scale_color_manual(values = c("#FFDF00", 
+                                                "#7CAE00",
+                                                "#00BFC4",
+                                                "#C77CFF"),                                                      
+                                     labels = c("Anatone", "Rockville", "Salmon", "West" ))
 
 #PERMANOVA
 # genomic_data_long <- genomic_data %>%
@@ -68,7 +73,13 @@ fig_pca_all_truncated <- ggplot(PCA_df_truncated)+
         legend.position = "right")+
   xlab("PC1 (29.9%)")+
   ylab("PC2 (14.6%)")+
-  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))
+  scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), values = c(16, 3, 17, 15))+
+  scale_color_manual(values = c("#FFDF00", 
+                                "#7CAE00",
+                                "#00BFC4",
+                                "#C77CFF"),                                                      
+                     labels = c("Anatone", "Rockville", "Salmon", "West" ))
+
 
 
 #PCA subset by area to see Anatone and seeded trts better
@@ -92,10 +103,10 @@ fig_pca_rockville <- ggplot(PCA_df_rockville)+
                               legend.position = "bottom")+
                         xlab("PC1 (18.0%)")+
                         ylab("PC2 (13.3%)")+
-                        scale_color_manual(values = c("#F8766D", 
-                                                      "#f7b2d8",
-                                                      "#999999",
-                                                      "#b2ffc3"),                                                      
+                        scale_color_manual(values =c("#FFDF00",
+                                                     "#FD5DA8",
+                                                     "#999999",
+                                                     "#6DD19C"),                                                      
                                            labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded" ))+
                         scale_shape_manual(labels = c( "Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
                                            values = c( 16, 3, 17, 15))+
@@ -125,10 +136,10 @@ fig_pca_salmon <- ggplot(PCA_df_salmon)+
                           legend.position = "bottom")+
                     xlab("PC1 (26.6%)")+
                     ylab("PC2 (14.6%)")+
-                    scale_color_manual(values = c("#F8766D",
-                                                  "#f7b2d8",
+                    scale_color_manual(values = c("#FFDF00",
+                                                  "#FD5DA8",
                                                   "#999999",
-                                                  "#b2ffc3"), 
+                                                  "#6DD19C"), 
                                        labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
                     scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
                                        values = c(16, 3, 17, 15))
@@ -153,10 +164,10 @@ fig_pca_west <- ggplot(PCA_df_west)+
                         legend.position = "bottom")+
                   xlab("PC1 (26.2%)")+
                   ylab("PC2 (15.1%)")+
-                  scale_color_manual(values = c("#F8766D",
-                                                "#f7b2d8",
+                  scale_color_manual(values = c("#FFDF00",
+                                                "#FD5DA8",
                                                 "#999999",
-                                                "#b2ffc3"), 
+                                                "#6DD19C"), 
                                      labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
                   scale_shape_manual(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"), 
                                      values = c(16, 3, 17, 15))
@@ -431,7 +442,6 @@ write_population(genomic_data_no_anatone, "C:/Users/Lina/Dropbox/Academics/Proje
 #Run STRUCTURE externally on soda_fire_genomic_data_cleaned.str
 #100k burn-in period, 100k iterations, K=1 to 6, run 10 times
 
-#Run STRUCTURE Harvester externally on STRUCTURE output
 #Visualize clumpp files with pophelper: https://www.royfrancis.com/pophelperShiny/index.html
 # install dependencies and remotes
 #install.packages(c("ggplot2","gridExtra","label.switching","tidyr","remotes",

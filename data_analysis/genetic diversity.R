@@ -74,19 +74,19 @@ num_genotypes <- length(unique(genomic_data$genotype))
 #Allelic richness (total number of alleles)
 Arichness.diversity <- genetic_diversity(genomic_data, stratum = "Treatment", mode = "A")
 colnames(Arichness.diversity) <- c('Treatment', 'Locus', 'A')
-A_plot <- ggplot(Arichness.diversity, aes(y = A, x = Treatment, fill = Treatment))+
+A_plot <- ggplot(Arichness.diversity %>%
+                   filter(Treatment != "Anatone"), aes(y = A, x = Treatment, fill = Treatment))+
   geom_col()+
   facet_wrap(~Locus, ncol = 2)+
-  scale_fill_manual(values = c("#F8766D",
-                                "#f7b2d8",
+  scale_fill_manual(values = c("#FD5DA8",
                                 "#999999",
-                                "#b2ffc3"), 
-                    labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
+                                "#6DD19C"), 
+                    labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))+
   theme(legend.position="none", 
         axis.text.x = element_text(angle = 40, hjust = 0.5, vjust = 0.5),
         plot.margin = unit(c(0,0.5,0,1), "cm"))+
   ylab("Total number of alleles")+
-  scale_x_discrete(labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))
+  scale_x_discrete(labels = c("Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))
 
 #Allelic richness (Effective Number of Alleles)
 A.diversity <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Ae")
@@ -123,6 +123,7 @@ anova(lm(He ~ Treatment * Area, genetic.diversity %>% filter(Treatment != "Anato
 TukeyHSD(aov(He ~ Treatment * Area, genetic.diversity))
 #Summary by area
 mean.genetic.diveristy <- genetic.diversity.pop %>%
+  filter(Treatment != "Anatone")%>%
   group_by(Area) %>%
   summarize(Ae = mean(mean_Ae), se_Ae = se(mean_Ae),
             Ho = mean(mean_Ho), se_Ho = se(mean_Ho),
@@ -130,6 +131,7 @@ mean.genetic.diveristy <- genetic.diversity.pop %>%
 
 #Summary by treatment and area
 mean.genetic.diveristy <- genetic.diversity.pop %>%
+  filter(Treatment != "Anatone") %>%
   group_by(Treatment, Area) %>%
   summarize(Ae = mean(mean_Ae), se_Ae = se(mean_Ae),
             Ho = mean(mean_Ho), se_Ho = se(mean_Ho),
@@ -139,7 +141,7 @@ mean.genetic.diveristy <- genetic.diversity.pop %>%
 Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ae, col = Treatment))+
   geom_point()+
   geom_errorbar(aes(ymin = Ae-se_Ae, ymax = Ae+se_Ae), width = 0.2, alpha = 0.9, size = 1)+
-  geom_jitter(data = genetic.diversity.pop %>% filter(Treatment != "Anatone"), aes(x = Area, y = mean_Ae))+
+  geom_jitter(data = genetic.diversity.pop %>%filter(Treatment != "Anatone"), aes(x = Area, y = mean_Ae))+
   ylab(expression(paste("Allele \nrichness")))+
   theme(text = element_text(size=12),
         panel.grid.major = element_blank(),
@@ -152,11 +154,10 @@ Ae_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ae, col = Treatment)
         plot.margin = unit(c(0,0.2,0,1), "cm"),
         #axis.text.x = element_text(angle = 40, hjust = 0.5, vjust = 0.5),
         legend.position = "top")+
-  scale_color_manual(values = c("#F8766D",
-                               "#f7b2d8",
-                               "#999999",
-                               "#b2ffc3"),
-                     labels = c("Anatone", "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))
+  scale_color_manual(values = c("#FD5DA8",
+                                "#999999",
+                                "#6DD19C"),
+                     labels = c( "Burned-Seeded", "Burned-Unseeded", "Unburned-Unseeded"))
   #facet_wrap(~Area, ncol = 5)+
   
 Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ho, col = Treatment))+
@@ -174,10 +175,9 @@ Ho_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = Ho, col = Treatment)
         plot.margin = unit(c(0,0.2,0,1), "cm"),
         #panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
         axis.title = element_text(size = 12))+
-  scale_color_manual(values = c("#F8766D",
-                                "#f7b2d8",
+  scale_color_manual(values = c("#FD5DA8",
                                 "#999999",
-                                "#b2ffc3"))
+                                "#6DD19C"))
   #facet_wrap(~Area, ncol = 5)+
   
 He_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = He, col = Treatment))+
@@ -196,15 +196,14 @@ He_plot <- ggplot(mean.genetic.diveristy, aes(x = Area, y = He, col = Treatment)
         #axis.text.x = element_text(angle = 40, hjust = 0.5, vjust = 0.5),
         axis.title.x = element_blank(),
         plot.margin = unit(c(0,0.2,0,1), "cm"))+
-  scale_color_manual(values = c("#F8766D",
-                                "#f7b2d8",
+  scale_color_manual(values = c("#FD5DA8",
                                 "#999999",
-                                "#b2ffc3"))
+                                "#6DD19C"))
   #ggtitle("Mean expected heterozygosity")
   #facet_wrap(~Area, ncol = 5)+
   
-ggarrange(A_plot, ggarrange(Ae_plot,He_plot,Ho_plot, ncol = 1, common.legend = TRUE, align = "hv", 
-          legend = "right", labels = c("b)", "c)", "d)")), ncol = 2, labels = c("a)"))
+ggarrange(A_plot, ggarrange(Ae_plot,Ho_plot, ncol = 1, common.legend = TRUE, align = "hv", 
+          legend = "right", labels = c("b)", "c)")), ncol = 2, labels = c("a)"))
 
 Fis <- genetic_diversity(genomic_data, stratum = "Plot", mode = "Fis")
 colnames(Fis) <- c('Plot', 'Locus', 'Fis')
@@ -264,10 +263,8 @@ Ae_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
   ylab(expression(paste("Allele \nrichness")))+
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Area)+
-  scale_color_manual(values = c(
-                                "#f7b2d8",
-                                "#999999"
-                                ), 
+  scale_color_manual(values = c("#FD5DA8",
+                                "#999999"), 
                      labels = c("Burned-Seeded", 
                                 "Burned-Unseeded"))
   #annotate("text", x = 3900, y = 20, label = "Burn-Seeded (BS): y = - 0.0003x + 6.98, R2 = 0.01, p = 0.19")+
@@ -296,9 +293,8 @@ Ho_distance <- ggplot(genetic.diversity.pop %>% filter(Treatment%in%c("BS", "BU"
   xlab("Distance from Fire Edge (m)")+
   facet_grid(~Area)+
   scale_color_manual(values = c(
-    "#f7b2d8",
-    "#999999"
-  ))
+    "#FD5DA8",
+    "#999999"))
 
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Rockville")))
 summary(lm(Ho~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BS"))%>%filter(Area == "Salmon")))
@@ -334,8 +330,8 @@ summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%fil
 summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "Salmon")))
 summary(lm(He~Distance_m, genetic.diversity%>%filter(Treatment%in%c("BU"))%>%filter(Area == "West")))
 
-ggarrange(Ae_distance, He_distance, Ho_distance, ncol = 1, align = "hv",
-          common.legend = TRUE, legend = "right", labels = c("a)", "b)", "c)"))
+ggarrange(Ae_distance,  Ho_distance, ncol = 1, align = "hv",
+          common.legend = TRUE, legend = "right", labels = c("a)", "b)"))
 
 #Fst
 Fst <- Fst(genomic_data, stratum = "Plot")
