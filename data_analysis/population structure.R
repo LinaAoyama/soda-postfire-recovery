@@ -8,6 +8,7 @@ library(adegenet)
 library(ggpubr)
 library(vegan)
 library(reshape2)
+library(pairwiseAdonis)
 
 #load data
 source("data_compiling/data compile.R")
@@ -52,6 +53,7 @@ fig_pca_all <- ggplot(PCA_df)+
 # permanova <- adonis(Allele1~Area, data = genomic_data_long, perm = 99, method = "euclidean") #PERMANOVA results: Significant treatment effect p = 0.001
 genomic_data_env <- genomic_data_raw[,1:9]
 adonis2(matrix_raw_data ~ Area*Treatment, data = genomic_data_env)  #PERMANOVA results: Significant area and treatment effects p = 0.001
+pairwise.adonis2(matrix_raw_data ~ Area, data = genomic_data_env, permutations = 999)
 
 #Try removing loci 307 and 396 (>50% missing values)
 matrix_raw_data_truncated <- genomic_data_raw[,10:29]
