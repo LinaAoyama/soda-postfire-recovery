@@ -68,7 +68,9 @@ ggarrange(L025, L040, L209, L262, L307, L338, L396, L548, L618, L831,
 
 #Total number of genotypes across 10 loci
 genomic_data$genotype <- apply( genomic_data[ ,10:19] , 1 , paste , collapse = "-" )
-num_genotypes <- length(unique(genomic_data$genotype))
+num_genotypes <- genomic_data %>%
+  group_by(Treatment) %>%
+  summarize(num_genotypes = length(unique(genotype)))
 
 #number of alleles per treatment per loci 
 #Allelic richness (total number of alleles)
